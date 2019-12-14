@@ -1,0 +1,1595 @@
+//
+//  main.c
+//  Cybersecurity Final Project
+//
+//  Created by Eduardo Macias on 12/5/19.
+//  Copyright © 2019 Eduardo Macias. All rights reserved.
+//
+#include <stdbool.h>
+#include <stdio.h>
+#include <inttypes.h>
+#define bits 64
+
+uint8_t S1 (uint8_t B);
+uint8_t S2 (uint8_t B);
+uint8_t S3 (uint8_t B);
+uint8_t S4 (uint8_t B);
+uint8_t S5 (uint8_t B);
+uint8_t S6 (uint8_t B);
+uint8_t S7 (uint8_t B);
+uint8_t S8 (uint8_t B);
+uint64_t DES (uint64_t msg, uint64_t key, bool Inverse);
+void DESI (uint64_t msg,uint64_t key);
+
+//I/0 Functions
+bool interface (void);
+
+//Conversion functions
+uint64_t asciitohex (char *text);
+char* hextoascii (uint64_t num);
+uint64_t hexstringtoint64 (char code[16]);
+
+uint64_t Kp = 0;
+uint64_t k1,k2,k3,k4,k5,k6,
+k7,k8,k9,k10,k11,k12,k13,k14,k15,k16;
+uint8_t PC1[56] =  {
+    57, 49, 41, 33, 25, 17, 9,
+    1,  58, 50, 42, 34, 26, 18,
+    10, 2,  59, 51, 43, 35, 27,
+    19, 11, 3,  60, 52, 44, 36,
+    63, 55, 47, 39, 31, 23, 15,
+    7,  62, 54, 46, 38, 30, 22,
+    14, 6,  61, 53, 45, 37, 29,
+    21, 13, 5,  28, 20, 12, 4
+};
+uint8_t PC2[48] =  {
+    14, 17, 11, 24, 1,  5,
+    3,  28, 15, 6,  21, 10,
+    23, 19, 12, 4,  26, 8,
+    16, 7,  27, 20, 13, 2,
+    41, 52, 31, 37, 47, 55,
+    30, 40, 51, 45, 33, 48,
+    44, 49, 39, 56, 34, 53,
+    46, 42, 50, 36, 29, 32
+};
+
+uint8_t IP[64] =  {
+    58, 50, 42, 34, 26, 18, 10, 2,
+    60, 52, 44, 36, 28, 20, 12, 4,
+    62, 54, 46, 38, 30, 22, 14, 6,
+    64, 56, 48, 40, 32, 24, 16, 8,
+    57, 49, 41, 33, 25, 17, 9,  1,
+    59, 51, 43, 35, 27, 19, 11, 3,
+    61, 53, 45, 37, 29, 21, 13, 5,
+    63, 55, 47, 39, 31, 23, 15, 7,
+};
+
+uint8_t E[48] =  {
+    32, 1,  2,  3,  4,  5,
+    4,  5,  6,  7,  8,  9,
+    8,  9,  10, 11, 12, 13,
+    12, 13, 14, 15, 16, 17,
+    16, 17, 18, 19, 20, 21,
+    20, 21, 22, 23, 24, 25,
+    24, 25, 26, 27, 28, 29,
+    28, 29, 30, 31, 32, 1
+};
+
+uint8_t P[48] = {
+    16, 7,  20, 21,
+    29, 12, 28, 17,
+    1,  15, 23, 26,
+    5,  18, 31, 10,
+    2,  8,  24, 14,
+    32, 27, 3,  9,
+    19, 13, 30, 6,
+    22, 11, 4, 25
+};
+
+uint8_t IP1[64]={
+    40, 8,  48, 16, 56, 24, 64, 32,
+    39, 7,  47, 15, 55, 23, 63, 31,
+    38, 6,  46, 14, 54, 22, 62, 30,
+    37, 5,  45, 13, 53, 21, 61, 29,
+    36, 4,  44, 12, 52, 20, 60, 28,
+    35, 3,  43, 11, 51, 19, 59, 27,
+    34, 2,  42, 10, 50, 18, 58, 26,
+    33, 1,  41, 9,  49, 17, 57, 25,
+    
+};
+uint32_t    A0,B0,
+A1,B1,
+A2,B2,
+A3,B3,
+A4,B4,
+A5,B5,
+A6,B6,
+A7,B7,
+A8,B8,
+A9,B9,
+A10,B10,
+A11,B11,
+A12,B12,
+A13,B13,
+A14,B14,
+A15,B15,
+A16,B16;
+
+uint32_t    L0,R0,
+L1,R1,
+L2,R2,
+L3,R3,
+L4,R4,
+L5,R5,
+L6,R6,
+L7,R7,
+L8,R8,
+L9,R9,
+L10,R10,
+L11,R11,
+L12,R12,
+L13,R13,
+L14,R14,
+L15,R15,
+L16,R16;
+
+bool run = 1;
+int main(void)
+{
+    
+   //DES(0x4564756172646F00,0x133457799BBCDFF1,false);
+    while(run == true)
+        run = interface();
+
+    return 0;
+}
+
+
+uint64_t DES (uint64_t msg, uint64_t key, bool Inverse){
+    
+    
+    uint64_t M = msg;
+    uint64_t  K = key;
+    Kp = 0;
+    k1 = 0;
+    k2 = 0;
+    k3 = 0;
+    k4 = 0;
+    k5 = 0;
+    k6 = 0;
+    k7 = 0;
+    k8 = 0;
+    k9 = 0;
+    k10 = 0;
+    k11 = 0;
+    k12 = 0;
+    k13 = 0;
+    k14 = 0;
+    k15 = 0;
+    k16 = 0;
+    //get kp
+    int x;
+    for(x = 0 ; x < 56 ; x++)
+        Kp |= ((K >> (64-PC1[x]) ) & (0x01)) << (55-x) ;
+    //get A0B0
+    
+    A0 = 0xFFFFFFF &(Kp >> 28);
+    B0 = 0xFFFFFFF & Kp;
+    
+    A1  = 0xFFFFFFF & ((A0<<1)|(A0 >> 27));
+    B1  = 0xFFFFFFF & ((B0<<1)|(B0 >> 27));
+    
+    A2  = 0xFFFFFFF & ((A1<<1)|(A1 >> 27));
+    B2  = 0xFFFFFFF & ((B1<<1)|(B1 >> 27));
+    
+    A3  = 0xFFFFFFF & ((A2<<2)|(A2 >> 26));
+    B3  = 0xFFFFFFF & ((B2<<2)|(B2 >> 26));
+    
+    A4  = 0xFFFFFFF & ((A3<<2)|(A3 >> 26));
+    B4  = 0xFFFFFFF & ((B3<<2)|(B3 >> 26));
+    
+    A5  = 0xFFFFFFF & ((A4<<2)|(A4 >> 26));
+    B5  = 0xFFFFFFF & ((B4<<2)|(B4 >> 26));
+    
+    A6  = 0xFFFFFFF & ((A5<<2)|(A5 >> 26));
+    B6  = 0xFFFFFFF & ((B5<<2)|(B5 >> 26));
+    
+    A7  = 0xFFFFFFF & ((A6<<2)|(A6 >> 26));
+    B7  = 0xFFFFFFF & ((B6<<2)|(B6 >> 26));
+    
+    A8  = 0xFFFFFFF & ((A7<<2)|(A7 >> 26));
+    B8  = 0xFFFFFFF & ((B7<<2)|(B7 >> 26));
+    
+    A9  = 0xFFFFFFF & ((A8<<1)|(A8 >> 27));
+    B9  = 0xFFFFFFF & ((B8<<1)|(B8 >> 27));
+    
+    A10  = 0xFFFFFFF & ((A9<<2)|(A9 >> 26));
+    B10  = 0xFFFFFFF & ((B9<<2)|(B9 >> 26));
+    
+    A11  = 0xFFFFFFF & ((A10<<2)|(A10 >> 26));
+    B11  = 0xFFFFFFF & ((B10<<2)|(B10 >> 26));
+    
+    A12  = 0xFFFFFFF & ((A11<<2)|(A11 >> 26));
+    B12  = 0xFFFFFFF & ((B11<<2)|(B11 >> 26));
+    
+    A13  = 0xFFFFFFF & ((A12<<2)|(A12 >> 26));
+    B13  = 0xFFFFFFF & ((B12<<2)|(B12 >> 26));
+    
+    A14  = 0xFFFFFFF & ((A13<<2)|(A13 >> 26));
+    B14  = 0xFFFFFFF & ((B13<<2)|(B13 >> 26));
+    
+    A15  = 0xFFFFFFF & ((A14<<2)|(A14 >> 26));
+    B15  = 0xFFFFFFF & ((B14<<2)|(B14 >> 26));
+    
+    A16  = 0xFFFFFFF & ((A15<<1)|(A15 >> 27));
+    B16  = 0xFFFFFFF & ((B15<<1)|(B15 >> 27));
+    
+    
+    // get ks
+    uint64_t da = A1;
+    da = da << 28;
+    da = da|B1;
+    for(x = 0 ; x < 48 ; x++)
+        k1 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A2;
+    da = da << 28;
+    da = da|B2;
+    for(x = 0 ; x < 48 ; x++)
+        k2 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A3;
+    da = da << 28;
+    da = da|B3;
+    for(x = 0 ; x < 48 ; x++)
+        k3 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A4;
+    da = da << 28;
+    da = da|B4;
+    for(x = 0 ; x < 48 ; x++)
+        k4 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A5;
+    da = da << 28;
+    da = da|B5;
+    for(x = 0 ; x < 48 ; x++)
+        k5 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A6;
+    da = da << 28;
+    da = da|B6;
+    for(x = 0 ; x < 48 ; x++)
+        k6 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A7;
+    da = da << 28;
+    da = da|B7;
+    for(x = 0 ; x < 48 ; x++)
+        k7 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A8;
+    da = da << 28;
+    da = da|B8;
+    for(x = 0 ; x < 48 ; x++)
+        k8 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A9;
+    da = da << 28;
+    da = da|B9;
+    for(x = 0 ; x < 48 ; x++)
+        k9 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A10;
+    da = da << 28;
+    da = da|B10;
+    for(x = 0 ; x < 48 ; x++)
+        k10 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A11;
+    da = da << 28;
+    da = da|B11;
+    for(x = 0 ; x < 48 ; x++)
+        k11 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A12;
+    da = da << 28;
+    da = da|B12;
+    for(x = 0 ; x < 48 ; x++)
+        k12 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A13;
+    da = da << 28;
+    da = da|B13;
+    for(x = 0 ; x < 48 ; x++)
+        k13 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A14;
+    da = da << 28;
+    da = da|B14;
+    for(x = 0 ; x < 48 ; x++)
+        k14 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A15;
+    da = da << 28;
+    da = da|B15;
+    for(x = 0 ; x < 48 ; x++)
+        k15 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    da = A16;
+    da = da << 28;
+    da = da|B16;
+    for(x = 0 ; x < 48 ; x++)
+        k16 |= (( da >> (56-PC2[x]) ) & (0x01)) << (47-x);
+    
+    if(Inverse == true){
+        
+        uint64_t ki11 = k1,
+        ki21 = k2,
+        ki31 = k3,
+        ki41 = k4,
+        ki51 = k5,
+        ki61 = k6,
+        ki71 = k7,
+        ki81 = k8,
+        ki91 = k9,
+        ki101 = k10,
+        ki111 = k11,
+        ki121 = k12,
+        ki131 = k13,
+        ki141 = k14,
+        ki151 = k15,
+        ki161 = k16;
+        
+        k1  = ki161;
+        k2  = ki151;
+        k3  = ki141;
+        k4  = ki131;
+        k5  = ki121;
+        k6  = ki111;
+        k7  = ki101;
+        k8  = ki91;
+        k9  = ki81;
+        k10 = ki71;
+        k11 = ki61;
+        k12 = ki51;
+        k13 = ki41;
+        k14 = ki31;
+        k15 = ki21;
+        k16 = ki11;
+        
+        
+    }
+    //step 2 Encode each 64-bit block of data
+    
+    //IP
+    uint64_t IPM = 0;
+    for(x = 0 ; x < 64 ; x++)
+        IPM |= ((M >> (64-IP[x]) ) & (0x01)) << (63-x);
+    
+    
+    L0 = (IPM >> 32) & 0xFFFFFFFF;
+    R0 = IPM & 0xFFFFFFFF;
+    
+    
+    /****************************Round 1*************************************/
+    
+    L1 = R0;
+    
+    uint64_t ER0 = 0;
+    uint64_t db;
+    db = R0;
+    for(x = 0 ; x < 48 ; x++)
+        ER0 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX1;
+    EX1 = k1^ER0;
+    
+    uint8_t B11 = (EX1 >> 42) & 0x3F;
+    uint8_t B12 = (EX1 >> 36) & 0x3F;
+    uint8_t B13 = (EX1 >> 30) & 0x3F;
+    uint8_t B14 = (EX1 >> 24) & 0x3F;
+    uint8_t B15 = (EX1 >> 18) & 0x3F;
+    uint8_t B16 = (EX1 >> 12) & 0x3F;
+    uint8_t B17 = (EX1 >> 6) & 0x3F;
+    uint8_t B18 = EX1 & 0x3F;
+    
+    uint8_t S1B1,
+    S1B2,
+    S1B3,
+    S1B4,
+    S1B5,
+    S1B6,
+    S1B7,
+    S1B8;
+    
+    S1B1 = S1(B11);
+    S1B2 = S2(B12);
+    S1B3 = S3(B13);
+    S1B4 = S4(B14);
+    S1B5 = S5(B15);
+    S1B6 = S6(B16);
+    S1B7 = S7(B17);
+    S1B8 = S8(B18);
+    
+    uint32_t f1;
+    f1 = S1B1;
+    f1 = (f1 << 4) + S1B2;
+    f1 = (f1 << 4) + S1B3;
+    f1 = (f1 << 4) + S1B4;
+    f1 = (f1 << 4) + S1B5;
+    f1 = (f1 << 4) + S1B6;
+    f1 = (f1 << 4) + S1B7;
+    f1 = (f1 << 4) + S1B8;
+    
+    da = f1;
+    f1 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f1 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R1 = L0 ^ f1;
+    
+    /***************************End of Round 1***********************************/
+    
+    
+    /****************************Round 2*************************************/
+    L2 = R1;
+    
+    uint64_t ER1 = 0;
+    db = R1;
+    for(x = 0 ; x < 48 ; x++)
+        ER1 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX2;
+    EX2 = k2^ER1;
+    
+    uint8_t B21 = (EX2 >> 42) & 0x3F;
+    uint8_t B22 = (EX2 >> 36) & 0x3F;
+    uint8_t B23 = (EX2 >> 30) & 0x3F;
+    uint8_t B24 = (EX2 >> 24) & 0x3F;
+    uint8_t B25 = (EX2 >> 18) & 0x3F;
+    uint8_t B26 = (EX2 >> 12) & 0x3F;
+    uint8_t B27 = (EX2 >> 6) & 0x3F;
+    uint8_t B28 = EX2 & 0x3F;
+    
+    uint8_t S2B1,
+    S2B2,
+    S2B3,
+    S2B4,
+    S2B5,
+    S2B6,
+    S2B7,
+    S2B8;
+    
+    S2B1 = S1(B21);
+    S2B2 = S2(B22);
+    S2B3 = S3(B23);
+    S2B4 = S4(B24);
+    S2B5 = S5(B25);
+    S2B6 = S6(B26);
+    S2B7 = S7(B27);
+    S2B8 = S8(B28);
+    
+    uint32_t f2;
+    f2 = S2B1;
+    f2 = (f2 << 4) + S2B2;
+    f2 = (f2 << 4) + S2B3;
+    f2 = (f2 << 4) + S2B4;
+    f2 = (f2 << 4) + S2B5;
+    f2 = (f2 << 4) + S2B6;
+    f2 = (f2 << 4) + S2B7;
+    f2 = (f2 << 4) + S2B8;
+    
+    da = f2;
+    f2 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f2 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R2 = L1 ^ f2;
+    
+    /**************************End of Round 2***********************************/
+    /************************Round 3*********************************/
+    L3 = R2;    // Ln = Rn-1
+    
+    uint64_t ER2 = 0; //ERn-1
+    db = R2;
+    for(x = 0 ; x < 48 ; x++)
+        ER2 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX3;
+    EX3 = k3^ER2;
+    
+    uint8_t B31 = (EX3 >> 42) & 0x3F;
+    uint8_t B32 = (EX3 >> 36) & 0x3F;
+    uint8_t B33 = (EX3 >> 30) & 0x3F;
+    uint8_t B34 = (EX3 >> 24) & 0x3F;
+    uint8_t B35 = (EX3 >> 18) & 0x3F;
+    uint8_t B36 = (EX3 >> 12) & 0x3F;
+    uint8_t B37 = (EX3 >> 6) & 0x3F;
+    uint8_t B38 = EX3 & 0x3F;
+    
+    uint8_t S3B1,
+    S3B2,
+    S3B3,
+    S3B4,
+    S3B5,
+    S3B6,
+    S3B7,
+    S3B8;
+    
+    S3B1 = S1(B31);
+    S3B2 = S2(B32);
+    S3B3 = S3(B33);
+    S3B4 = S4(B34);
+    S3B5 = S5(B35);
+    S3B6 = S6(B36);
+    S3B7 = S7(B37);
+    S3B8 = S8(B38);
+    
+    uint32_t f3;
+    f3 = S3B1;
+    f3 = (f3 << 4) + S3B2;
+    f3 = (f3 << 4) + S3B3;
+    f3 = (f3 << 4) + S3B4;
+    f3 = (f3 << 4) + S3B5;
+    f3 = (f3 << 4) + S3B6;
+    f3 = (f3 << 4) + S3B7;
+    f3 = (f3 << 4) + S3B8;
+    
+    da = f3;
+    f3 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f3 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R3 = L2 ^ f3;
+    
+    /**********************End of Round 3*******************************/
+    /*************************Round 4********************************/
+    L4 = R3;    // Ln = Rn-1
+    
+    uint64_t ER3 = 0; //ERn-1
+    db = R3;
+    for(x = 0 ; x < 48 ; x++)
+        ER3 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX4;
+    EX4 = k4^ER3;
+    
+    uint8_t B41 = (EX4 >> 42) & 0x3F;
+    uint8_t B42 = (EX4 >> 36) & 0x3F;
+    uint8_t B43 = (EX4 >> 30) & 0x3F;
+    uint8_t B44 = (EX4 >> 24) & 0x3F;
+    uint8_t B45 = (EX4 >> 18) & 0x3F;
+    uint8_t B46 = (EX4 >> 12) & 0x3F;
+    uint8_t B47 = (EX4 >> 6) & 0x3F;
+    uint8_t B48 = EX4 & 0x3F;
+    
+    uint8_t S4B1,
+    S4B2,
+    S4B3,
+    S4B4,
+    S4B5,
+    S4B6,
+    S4B7,
+    S4B8;
+    
+    S4B1 = S1(B41);
+    S4B2 = S2(B42);
+    S4B3 = S3(B43);
+    S4B4 = S4(B44);
+    S4B5 = S5(B45);
+    S4B6 = S6(B46);
+    S4B7 = S7(B47);
+    S4B8 = S8(B48);
+    
+    uint32_t f4;
+    f4 = S4B1;
+    f4 = (f4 << 4) + S4B2;
+    f4 = (f4 << 4) + S4B3;
+    f4 = (f4 << 4) + S4B4;
+    f4 = (f4 << 4) + S4B5;
+    f4 = (f4 << 4) + S4B6;
+    f4 = (f4 << 4) + S4B7;
+    f4 = (f4 << 4) + S4B8;
+    
+    da = f4;
+    f4 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f4 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R4 = L3 ^ f4;
+    
+    /**********************End of Round 4*******************************/
+    /*************************Round 5********************************/
+    L5 = R4;    // Ln = Rn-1
+    
+    uint64_t ER4 = 0; //ERn-1
+    db = R4;
+    for(x = 0 ; x < 48 ; x++)
+        ER4 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX5;
+    EX5 = k5^ER4;
+    
+    uint8_t B51 = (EX5 >> 42) & 0x3F;
+    uint8_t B52 = (EX5 >> 36) & 0x3F;
+    uint8_t B53 = (EX5 >> 30) & 0x3F;
+    uint8_t B54 = (EX5 >> 24) & 0x3F;
+    uint8_t B55 = (EX5 >> 18) & 0x3F;
+    uint8_t B56 = (EX5 >> 12) & 0x3F;
+    uint8_t B57 = (EX5 >> 6) & 0x3F;
+    uint8_t B58 = EX5 & 0x3F;
+    
+    uint8_t S5B1,
+    S5B2,
+    S5B3,
+    S5B4,
+    S5B5,
+    S5B6,
+    S5B7,
+    S5B8;
+    
+    S5B1 = S1(B51);
+    S5B2 = S2(B52);
+    S5B3 = S3(B53);
+    S5B4 = S4(B54);
+    S5B5 = S5(B55);
+    S5B6 = S6(B56);
+    S5B7 = S7(B57);
+    S5B8 = S8(B58);
+    
+    uint32_t f5;
+    f5 =             S5B1;
+    f5 = (f5 << 4) + S5B2;
+    f5 = (f5 << 4) + S5B3;
+    f5 = (f5 << 4) + S5B4;
+    f5 = (f5 << 4) + S5B5;
+    f5 = (f5 << 4) + S5B6;
+    f5 = (f5 << 4) + S5B7;
+    f5 = (f5 << 4) + S5B8;
+    
+    da = f5;
+    f5 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f5 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R5 = L4 ^ f5;
+    /**********************End of Round 5*******************************/
+    /*************************Round 6********************************/
+    L6 = R5;    // Ln = Rn-1
+    
+    uint64_t ER5 = 0; //ERn-1
+    db = R5;
+    for(x = 0 ; x < 48 ; x++)
+        ER5 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX6;
+    EX6 = k6^ER5;
+    
+    uint8_t B61 = (EX6 >> 42) & 0x3F;
+    uint8_t B62 = (EX6 >> 36) & 0x3F;
+    uint8_t B63 = (EX6 >> 30) & 0x3F;
+    uint8_t B64 = (EX6 >> 24) & 0x3F;
+    uint8_t B65 = (EX6 >> 18) & 0x3F;
+    uint8_t B66 = (EX6 >> 12) & 0x3F;
+    uint8_t B67 = (EX6 >> 6) & 0x3F;
+    uint8_t B68 = EX6 & 0x3F;
+    
+    uint8_t S6B1,
+    S6B2,
+    S6B3,
+    S6B4,
+    S6B5,
+    S6B6,
+    S6B7,
+    S6B8;
+    
+    S6B1 = S1(B61);
+    S6B2 = S2(B62);
+    S6B3 = S3(B63);
+    S6B4 = S4(B64);
+    S6B5 = S5(B65);
+    S6B6 = S6(B66);
+    S6B7 = S7(B67);
+    S6B8 = S8(B68);
+    
+    uint32_t f6;
+    f6 =             S6B1;
+    f6 = (f6 << 4) + S6B2;
+    f6 = (f6 << 4) + S6B3;
+    f6 = (f6 << 4) + S6B4;
+    f6 = (f6 << 4) + S6B5;
+    f6 = (f6 << 4) + S6B6;
+    f6 = (f6 << 4) + S6B7;
+    f6 = (f6 << 4) + S6B8;
+    
+    da = f6;
+    f6 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f6 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R6 = L5 ^ f6;
+    /**********************End of Round 6*******************************/
+    /*************************Round 7********************************/
+    L7 = R6;    // Ln = Rn-1
+    
+    uint64_t ER6 = 0; //ERn-1
+    db = R6;
+    for(x = 0 ; x < 48 ; x++)
+        ER6 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX7;
+    EX7 = k7^ER6;
+    
+    uint8_t B71 = (EX7 >> 42) & 0x3F;
+    uint8_t B72 = (EX7 >> 36) & 0x3F;
+    uint8_t B73 = (EX7 >> 30) & 0x3F;
+    uint8_t B74 = (EX7 >> 24) & 0x3F;
+    uint8_t B75 = (EX7 >> 18) & 0x3F;
+    uint8_t B76 = (EX7 >> 12) & 0x3F;
+    uint8_t B77 = (EX7 >> 6) & 0x3F;
+    uint8_t B78 = EX7 & 0x3F;
+    
+    uint8_t S7B1,
+    S7B2,
+    S7B3,
+    S7B4,
+    S7B5,
+    S7B6,
+    S7B7,
+    S7B8;
+    
+    S7B1 = S1(B71);
+    S7B2 = S2(B72);
+    S7B3 = S3(B73);
+    S7B4 = S4(B74);
+    S7B5 = S5(B75);
+    S7B6 = S6(B76);
+    S7B7 = S7(B77);
+    S7B8 = S8(B78);
+    
+    uint32_t f7;
+    f7 =             S7B1;
+    f7 = (f7 << 4) + S7B2;
+    f7 = (f7 << 4) + S7B3;
+    f7 = (f7 << 4) + S7B4;
+    f7 = (f7 << 4) + S7B5;
+    f7 = (f7 << 4) + S7B6;
+    f7 = (f7 << 4) + S7B7;
+    f7 = (f7 << 4) + S7B8;
+    
+    da = f7;
+    f7 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f7 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R7 = L6 ^ f7;
+    /**********************End of Round 7*******************************/
+    /*************************Round 8********************************/
+    L8 = R7;    // Ln = Rn-1
+    
+    uint64_t ER7 = 0; //ERn-1
+    db = R7;
+    for(x = 0 ; x < 48 ; x++)
+        ER7 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX8;
+    EX8 = k8^ER7;
+    
+    uint8_t B81 = (EX8 >> 42) & 0x3F;
+    uint8_t B82 = (EX8 >> 36) & 0x3F;
+    uint8_t B83 = (EX8 >> 30) & 0x3F;
+    uint8_t B84 = (EX8 >> 24) & 0x3F;
+    uint8_t B85 = (EX8 >> 18) & 0x3F;
+    uint8_t B86 = (EX8 >> 12) & 0x3F;
+    uint8_t B87 = (EX8 >> 6) & 0x3F;
+    uint8_t B88 =  EX8 & 0x3F;
+    
+    uint8_t S8B1,
+    S8B2,
+    S8B3,
+    S8B4,
+    S8B5,
+    S8B6,
+    S8B7,
+    S8B8;
+    
+    S8B1 = S1(B81);
+    S8B2 = S2(B82);
+    S8B3 = S3(B83);
+    S8B4 = S4(B84);
+    S8B5 = S5(B85);
+    S8B6 = S6(B86);
+    S8B7 = S7(B87);
+    S8B8 = S8(B88);
+    
+    uint32_t f8;
+    f8 =             S8B1;
+    f8 = (f8 << 4) + S8B2;
+    f8 = (f8 << 4) + S8B3;
+    f8 = (f8 << 4) + S8B4;
+    f8 = (f8 << 4) + S8B5;
+    f8 = (f8 << 4) + S8B6;
+    f8 = (f8 << 4) + S8B7;
+    f8 = (f8 << 4) + S8B8;
+    
+    da = f8;
+    f8 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f8 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R8 = L7 ^ f8;
+    /**********************End of Round 8*******************************/
+    /*************************Round 9********************************/
+    L9 = R8;    // Ln = Rn-1
+    
+    uint64_t ER8 = 0; //ERn-1
+    db = R8;
+    for(x = 0 ; x < 48 ; x++)
+        ER8 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX9;
+    EX9 = k9^ER8;
+    
+    uint8_t B91 = (EX9 >> 42) & 0x3F;
+    uint8_t B92 = (EX9 >> 36) & 0x3F;
+    uint8_t B93 = (EX9 >> 30) & 0x3F;
+    uint8_t B94 = (EX9 >> 24) & 0x3F;
+    uint8_t B95 = (EX9 >> 18) & 0x3F;
+    uint8_t B96 = (EX9 >> 12) & 0x3F;
+    uint8_t B97 = (EX9 >> 6) & 0x3F;
+    uint8_t B98 =  EX9 & 0x3F;
+    
+    uint8_t S9B1,
+    S9B2,
+    S9B3,
+    S9B4,
+    S9B5,
+    S9B6,
+    S9B7,
+    S9B8;
+    
+    S9B1 = S1(B91);
+    S9B2 = S2(B92);
+    S9B3 = S3(B93);
+    S9B4 = S4(B94);
+    S9B5 = S5(B95);
+    S9B6 = S6(B96);
+    S9B7 = S7(B97);
+    S9B8 = S8(B98);
+    
+    uint32_t f9;
+    f9 =             S9B1;
+    f9 = (f9 << 4) + S9B2;
+    f9 = (f9 << 4) + S9B3;
+    f9 = (f9 << 4) + S9B4;
+    f9 = (f9 << 4) + S9B5;
+    f9 = (f9 << 4) + S9B6;
+    f9 = (f9 << 4) + S9B7;
+    f9 = (f9 << 4) + S9B8;
+    
+    da = f9;
+    f9 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f9 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R9 = L8 ^ f9;
+    /**********************End of Round 9*******************************/
+    /*************************Round 10********************************/
+    L10 = R9;    // Ln = Rn-1
+    
+    uint64_t ER9 = 0; //ERn-1
+    db = R9;
+    for(x = 0 ; x < 48 ; x++)
+        ER9 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX10;
+    EX10 = k10^ER9;
+    
+    uint8_t B101 = (EX10 >> 42) & 0x3F;
+    uint8_t B102 = (EX10 >> 36) & 0x3F;
+    uint8_t B103 = (EX10 >> 30) & 0x3F;
+    uint8_t B104 = (EX10 >> 24) & 0x3F;
+    uint8_t B105 = (EX10 >> 18) & 0x3F;
+    uint8_t B106 = (EX10 >> 12) & 0x3F;
+    uint8_t B107 = (EX10 >> 6) & 0x3F;
+    uint8_t B108 =  EX10 & 0x3F;
+    
+    uint8_t S10B1,
+    S10B2,
+    S10B3,
+    S10B4,
+    S10B5,
+    S10B6,
+    S10B7,
+    S10B8;
+    
+    S10B1 = S1(B101);
+    S10B2 = S2(B102);
+    S10B3 = S3(B103);
+    S10B4 = S4(B104);
+    S10B5 = S5(B105);
+    S10B6 = S6(B106);
+    S10B7 = S7(B107);
+    S10B8 = S8(B108);
+    
+    uint32_t f10;
+    f10 =              S10B1;
+    f10 = (f10 << 4) + S10B2;
+    f10 = (f10 << 4) + S10B3;
+    f10 = (f10 << 4) + S10B4;
+    f10 = (f10 << 4) + S10B5;
+    f10 = (f10 << 4) + S10B6;
+    f10 = (f10 << 4) + S10B7;
+    f10 = (f10 << 4) + S10B8;
+    
+    da = f10;
+    f10 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f10 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R10 = L9 ^ f10;
+    /**********************End of Round 10*******************************/
+    /*************************Round 11********************************/
+    L11 = R10;    // Ln = Rn-1
+    
+    uint64_t ER10 = 0; //ERn-1
+    db = R10;
+    for(x = 0 ; x < 48 ; x++)
+        ER10 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX11;
+    EX11 = k11^ER10;
+    
+    uint8_t B111 = (EX11 >> 42) & 0x3F;
+    uint8_t B112 = (EX11 >> 36) & 0x3F;
+    uint8_t B113 = (EX11 >> 30) & 0x3F;
+    uint8_t B114 = (EX11 >> 24) & 0x3F;
+    uint8_t B115 = (EX11 >> 18) & 0x3F;
+    uint8_t B116 = (EX11 >> 12) & 0x3F;
+    uint8_t B117 = (EX11 >> 6) & 0x3F;
+    uint8_t B118 =  EX11 & 0x3F;
+    
+    uint8_t S11B1,
+    S11B2,
+    S11B3,
+    S11B4,
+    S11B5,
+    S11B6,
+    S11B7,
+    S11B8;
+    
+    S11B1 = S1(B111);
+    S11B2 = S2(B112);
+    S11B3 = S3(B113);
+    S11B4 = S4(B114);
+    S11B5 = S5(B115);
+    S11B6 = S6(B116);
+    S11B7 = S7(B117);
+    S11B8 = S8(B118);
+    
+    uint32_t f11;
+    f11 =              S11B1;
+    f11 = (f11 << 4) + S11B2;
+    f11 = (f11 << 4) + S11B3;
+    f11 = (f11 << 4) + S11B4;
+    f11 = (f11 << 4) + S11B5;
+    f11 = (f11 << 4) + S11B6;
+    f11 = (f11 << 4) + S11B7;
+    f11 = (f11 << 4) + S11B8;
+    
+    da = f11;
+    f11 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f11 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R11 = L10 ^ f11;
+    /**********************End of Round 11*******************************/
+    /*************************Round 12********************************/
+    L12 = R11;    // Ln = Rn-1
+    
+    uint64_t ER11 = 0; //ERn-1
+    db = R11;
+    for(x = 0 ; x < 48 ; x++)
+        ER11 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX12;
+    EX12 = k12^ER11;
+    
+    uint8_t B121 = (EX12 >> 42) & 0x3F;
+    uint8_t B122 = (EX12 >> 36) & 0x3F;
+    uint8_t B123 = (EX12 >> 30) & 0x3F;
+    uint8_t B124 = (EX12 >> 24) & 0x3F;
+    uint8_t B125 = (EX12 >> 18) & 0x3F;
+    uint8_t B126 = (EX12 >> 12) & 0x3F;
+    uint8_t B127 = (EX12 >> 6) & 0x3F;
+    uint8_t B128 =  EX12 & 0x3F;
+    
+    uint8_t S12B1,
+    S12B2,
+    S12B3,
+    S12B4,
+    S12B5,
+    S12B6,
+    S12B7,
+    S12B8;
+    
+    S12B1 = S1(B121);
+    S12B2 = S2(B122);
+    S12B3 = S3(B123);
+    S12B4 = S4(B124);
+    S12B5 = S5(B125);
+    S12B6 = S6(B126);
+    S12B7 = S7(B127);
+    S12B8 = S8(B128);
+    
+    uint32_t f12;
+    f12 =              S12B1;
+    f12 = (f12 << 4) + S12B2;
+    f12 = (f12 << 4) + S12B3;
+    f12 = (f12 << 4) + S12B4;
+    f12 = (f12 << 4) + S12B5;
+    f12 = (f12 << 4) + S12B6;
+    f12 = (f12 << 4) + S12B7;
+    f12 = (f12 << 4) + S12B8;
+    
+    da = f12;
+    f12 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f12 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R12 = L11 ^ f12;
+    /**********************End of Round 12*******************************/
+    /*************************Round 13********************************/
+    L13 = R12;    // Ln = Rn-1
+    
+    uint64_t ER12 = 0; //ERn-1
+    db = R12;
+    for(x = 0 ; x < 48 ; x++)
+        ER12 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX13;
+    EX13 = k13^ER12;
+    
+    uint8_t B131 = (EX13 >> 42) & 0x3F;
+    uint8_t B132 = (EX13 >> 36) & 0x3F;
+    uint8_t B133 = (EX13 >> 30) & 0x3F;
+    uint8_t B134 = (EX13 >> 24) & 0x3F;
+    uint8_t B135 = (EX13 >> 18) & 0x3F;
+    uint8_t B136 = (EX13 >> 12) & 0x3F;
+    uint8_t B137 = (EX13 >> 6) & 0x3F;
+    uint8_t B138 =  EX13 & 0x3F;
+    
+    uint8_t S13B1,
+    S13B2,
+    S13B3,
+    S13B4,
+    S13B5,
+    S13B6,
+    S13B7,
+    S13B8;
+    
+    S13B1 = S1(B131);
+    S13B2 = S2(B132);
+    S13B3 = S3(B133);
+    S13B4 = S4(B134);
+    S13B5 = S5(B135);
+    S13B6 = S6(B136);
+    S13B7 = S7(B137);
+    S13B8 = S8(B138);
+    
+    uint32_t f13;
+    f13 =              S13B1;
+    f13 = (f13 << 4) + S13B2;
+    f13 = (f13 << 4) + S13B3;
+    f13 = (f13 << 4) + S13B4;
+    f13 = (f13 << 4) + S13B5;
+    f13 = (f13 << 4) + S13B6;
+    f13 = (f13 << 4) + S13B7;
+    f13 = (f13 << 4) + S13B8;
+    
+    da = f13;
+    f13 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f13 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R13 = L12 ^ f13;
+    /**********************End of Round 13*******************************/
+    /*************************Round 14********************************/
+    L14 = R13;    // Ln = Rn-1
+    
+    uint64_t ER13 = 0; //ERn-1
+    db = R13;
+    for(x = 0 ; x < 48 ; x++)
+        ER13 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX14;
+    EX14 = k14^ER13;
+    
+    uint8_t B141 = (EX14 >> 42) & 0x3F;
+    uint8_t B142 = (EX14 >> 36) & 0x3F;
+    uint8_t B143 = (EX14 >> 30) & 0x3F;
+    uint8_t B144 = (EX14 >> 24) & 0x3F;
+    uint8_t B145 = (EX14 >> 18) & 0x3F;
+    uint8_t B146 = (EX14 >> 12) & 0x3F;
+    uint8_t B147 = (EX14 >> 6) & 0x3F;
+    uint8_t B148 =  EX14 & 0x3F;
+    
+    uint8_t S14B1,
+    S14B2,
+    S14B3,
+    S14B4,
+    S14B5,
+    S14B6,
+    S14B7,
+    S14B8;
+    
+    S14B1 = S1(B141);
+    S14B2 = S2(B142);
+    S14B3 = S3(B143);
+    S14B4 = S4(B144);
+    S14B5 = S5(B145);
+    S14B6 = S6(B146);
+    S14B7 = S7(B147);
+    S14B8 = S8(B148);
+    
+    uint32_t f14;
+    f14 =              S14B1;
+    f14 = (f14 << 4) + S14B2;
+    f14 = (f14 << 4) + S14B3;
+    f14 = (f14 << 4) + S14B4;
+    f14 = (f14 << 4) + S14B5;
+    f14 = (f14 << 4) + S14B6;
+    f14 = (f14 << 4) + S14B7;
+    f14 = (f14 << 4) + S14B8;
+    
+    da = f14;
+    f14 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f14 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R14 = L13 ^ f14;
+    /**********************End of Round 14*******************************/
+    /*************************Round 15********************************/
+    L15 = R14;    // Ln = Rn-1
+    
+    uint64_t ER14 = 0; //ERn-1
+    db = R14;
+    for(x = 0 ; x < 48 ; x++)
+        ER14 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX15;
+    EX15 = k15^ER14;
+    
+    uint8_t B151 = (EX15 >> 42) & 0x3F;
+    uint8_t B152 = (EX15 >> 36) & 0x3F;
+    uint8_t B153 = (EX15 >> 30) & 0x3F;
+    uint8_t B154 = (EX15 >> 24) & 0x3F;
+    uint8_t B155 = (EX15 >> 18) & 0x3F;
+    uint8_t B156 = (EX15 >> 12) & 0x3F;
+    uint8_t B157 = (EX15 >> 6) & 0x3F;
+    uint8_t B158 =  EX15 & 0x3F;
+    
+    uint8_t S15B1,
+    S15B2,
+    S15B3,
+    S15B4,
+    S15B5,
+    S15B6,
+    S15B7,
+    S15B8;
+    
+    S15B1 = S1(B151);
+    S15B2 = S2(B152);
+    S15B3 = S3(B153);
+    S15B4 = S4(B154);
+    S15B5 = S5(B155);
+    S15B6 = S6(B156);
+    S15B7 = S7(B157);
+    S15B8 = S8(B158);
+    
+    uint32_t f15;
+    f15 =              S15B1;
+    f15 = (f15 << 4) + S15B2;
+    f15 = (f15 << 4) + S15B3;
+    f15 = (f15 << 4) + S15B4;
+    f15 = (f15 << 4) + S15B5;
+    f15 = (f15 << 4) + S15B6;
+    f15 = (f15 << 4) + S15B7;
+    f15 = (f15 << 4) + S15B8;
+    
+    da = f15;
+    f15 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f15 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R15 = L14 ^ f15;
+    /**********************End of Round 15*******************************/
+    /*************************Round 16********************************/
+    L16 = R15;    // Ln = Rn-1
+    
+    uint64_t ER15 = 0; //ERn-1
+    db = R15;
+    for(x = 0 ; x < 48 ; x++)
+        ER15 |= ((db >> (32-E[x])) & (0x01)) << (47-x);
+    
+    uint64_t EX16;
+    EX16 = k16^ER15;
+    
+    uint8_t B161 = (EX16 >> 42) & 0x3F;
+    uint8_t B162 = (EX16 >> 36) & 0x3F;
+    uint8_t B163 = (EX16 >> 30) & 0x3F;
+    uint8_t B164 = (EX16 >> 24) & 0x3F;
+    uint8_t B165 = (EX16 >> 18) & 0x3F;
+    uint8_t B166 = (EX16 >> 12) & 0x3F;
+    uint8_t B167 = (EX16 >> 6) & 0x3F;
+    uint8_t B168 =  EX16 & 0x3F;
+    
+    uint8_t S16B1,
+    S16B2,
+    S16B3,
+    S16B4,
+    S16B5,
+    S16B6,
+    S16B7,
+    S16B8;
+    
+    S16B1 = S1(B161);
+    S16B2 = S2(B162);
+    S16B3 = S3(B163);
+    S16B4 = S4(B164);
+    S16B5 = S5(B165);
+    S16B6 = S6(B166);
+    S16B7 = S7(B167);
+    S16B8 = S8(B168);
+    
+    uint32_t f16;
+    f16 =              S16B1;
+    f16 = (f16 << 4) + S16B2;
+    f16 = (f16 << 4) + S16B3;
+    f16 = (f16 << 4) + S16B4;
+    f16 = (f16 << 4) + S16B5;
+    f16 = (f16 << 4) + S16B6;
+    f16 = (f16 << 4) + S16B7;
+    f16 = (f16 << 4) + S16B8;
+    
+    da = f16;
+    f16 = 0;
+    for(x = 0 ; x < 48 ; x++)
+        f16 |= (( da >> (32-P[x]) ) & (0x01)) << (31-x);
+    R16 = L15 ^ f16;
+    
+    uint64_t C = R16;
+    C = (C<<32) + L16;
+    db = C;
+    C = 0;
+    for(x = 0 ; x < 64 ; x++)
+        C |= (( db >> (64-IP1[x]) ) & (0x01)) << (63-x);
+    /**********************End of Round 16*******************************/
+    uint32_t a,b;
+    a = (C & 0xFFFFFFFF);
+    b = (C >> 32) & 0xFFFFFFFF;
+    
+//    printf("%X%X\n",b,a);
+    
+    return C;
+}
+
+uint8_t S1 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        14, 4,  13, 1,  2,  15, 11, 8,  3,  10, 6,  12, 5,  9,  0,  7,
+        0,  15, 7,  4,  14, 2,  13, 1,  10, 6,  12, 11, 9,  5,  3,  8,
+        4,  1,  14, 8,  13, 6,  2,  11, 15, 12, 9,  7,  3,  10, 5,  0,
+        15, 12, 8,  2,  4,  9,  1,  7,  5,  11, 3,  14, 10, 0,  6,  13
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S2 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        15, 1,  8,  14, 6,  11, 3,  4,  9,  7,  2,  13, 12, 0,  5,  10,
+        3,  13, 4,  7,  15, 2,  8,  14, 12, 0,  1,  10, 6,  9,  11, 5,
+        0,  14, 7,  11, 10, 4,  13, 1,  5,  8,  12, 6,  9,  3,  2,  15,
+        13, 8,  10, 1,  3,  15, 4,  2,  11, 6,  7,  12, 0,  5,  14, 9,
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S3 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        10, 0,  9,  14, 6,  3,  15, 5,  1,  13, 12, 7,  11, 4,  2,  8,
+        13, 7,  0,  9,  3,  4,  6,  10, 2,  8,  5,  14, 12, 11, 15, 1,
+        13, 6,  4,  9,  8,  15,  3,  0,  11, 1,  2,  12, 5,  10, 14, 7,
+        1,  10, 13, 0,  6,  9,  8,  7,  4,  15, 14, 3,  11, 5,  2,  12,
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S4 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        7,  13, 14, 3,  0,  6,  9,  10, 1,  2,  8,  5,  11, 12, 4,  15,
+        13, 8,  11, 5,  6,  15, 0,  3,  4,  7,  2,  12, 1,  10, 14, 9,
+        10, 6,  9,  0,  12, 11, 7,  13, 15, 1,  3,  14, 5,  2,  8,  4,
+        3,  15, 0,  6,  10, 1,  13, 8,  9,  4,  5,  11, 12, 7,  2,  14
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S5 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        2,  12, 4,  1,  7,  10, 11, 6,  8,  5,  3,  15, 13, 0,  14, 9,
+        14, 11, 2,  12, 4,  7,  13, 1,  5,  0,  15, 10, 3,  9,  8,  6,
+        4,  2,  1,  11, 10, 13, 7,  8,  15, 9,  12, 5,  6,  3,  0,  14,
+        11, 8,  12, 7,  1,  14, 2,  13, 6,  15, 0,  9,  10, 4,  5,  3,
+        
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S6 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        12, 1,  10, 15, 9,  2,  6,  8,  0,  13, 3,  4,  14, 7,  5,  11,
+        10, 15, 4,  2,  7,  12, 9,  5,  6,  1,  13, 14, 0,  11, 3,  8,
+        9,  14, 15, 5,  2,  8,  12, 3,  7,  0,  4,  10, 1,  13, 11, 6,
+        4,  3,  2,  12, 9,  5,  15, 10, 11, 14, 1,  7,  6,  0,  8,  13
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S7 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        4,  11, 2,  14, 15, 0,  8,  13, 3,  12, 9,  7,  5,  10, 6,  1,
+        13, 0,  11, 7,  4,  9,  1,  10, 14, 3,  5,  12, 2,  15, 8,  6,
+        1,  4,  11, 13, 12, 3,  7,  14, 10, 15, 6,  8,  0,  5,  9,  2,
+        6,  11, 13, 8,  1,  4,  10, 7,  9,  5,  0,  15, 14, 2,  3,  12
+        
+    };
+    c = arr[Col][Row];
+    return c;
+}
+uint8_t S8 (uint8_t B){
+    uint8_t Col = ((B & 0x20)>>4) | (B & 0x01);
+    uint8_t Row = (B & 0x1E) >> 1;
+    uint8_t c = 0;
+    uint8_t arr[4][16]={
+        13, 2,  8,  4,  6,  15, 11, 1,  10, 9,  3,  14, 5,  0,  12, 7,
+        1,  15, 13, 8,  10, 3,  7,  4,  12, 5,  6,  11, 0,  14, 9,  2,
+        7,  11, 4,  1,  9,  12, 14, 2,  0,  6,  10, 13, 15, 3,  5,  8,
+        2,  1,  14, 7,  4,  10, 8,  13, 15, 12, 9,  0,  3,  5,  6,  11
+    };
+    c = arr[Col][Row];
+    return c;
+}
+
+bool interface (void){
+    
+    printf("\nWelcome to DES encrypter and decrypter!\n"
+           "If you want to exit, please press x\n"
+           "If you want to Decrypt/Encrypt a meesage please press any other key\n");
+    char go = getchar();
+    fflush(stdin);
+    if(go == 'x' | go == 'X'){
+        return false ;
+    }
+    
+    printf("\nPlese select"
+           "\n1 Encrypt"
+           "\n2 Decrypt\n");
+    char text[8]={0,0,0,0,0,0,0,0};
+    char select = getchar();
+    fflush(stdin);
+    switch (select){
+        case '1':
+            printf("Please select format to encrypt:\n"
+                   "1 Ascii\n"
+                   "2 Hex\n");
+            char opt1 = getchar();
+            fflush(stdin);
+            if(opt1 == '1'){
+                printf("Please enter the message you wish to encrypt in ascii format\n");
+                scanf("%s", text);
+                fflush(stdin);
+                uint64_t c = asciitohex(text);
+                
+                c = DES(c,0x133457799BBCDFF1,false);
+                char *ms;
+                ms = hextoascii(c);
+                uint32_t a,b;
+                a = (c & 0xFFFFFFFF);
+                b = (c >> 32) & 0xFFFFFFFF;
+                printf("\n\nYour ciphertext in hex format is:\n\n"
+                       "%x%x\n\n",b,a);
+                printf("Your ciphertext in ascii format is:\n"
+                       "%c %c %c %c %c %c %c %c\n"
+                       ,ms[0],ms[1],ms[2],ms[3],ms[4],ms[5],ms[6],ms[7]);
+            }
+            if(opt1 == '2'){
+                printf("Please enter the message you wish to encrypt in hex format\n");
+                char code[17];
+                scanf("%s", code);
+                fflush(stdin);
+                uint64_t c = hexstringtoint64(code);
+                c = DES(c,0x133457799BBCDFF1,false);
+                char *ms;
+                ms = hextoascii(c);
+                uint32_t a,b;
+                a = (c & 0xFFFFFFFF);
+                b = (c >> 32) & 0xFFFFFFFF;
+                printf("\n\nYour ciphertext in hex format is:\n\n"
+                       "%x%x\n\n",b,a);
+                printf("Your ciphertext in ascii format is:\n"
+                       "%c %c %c %c %c %c %c %c\n"
+                       ,ms[0],ms[1],ms[2],ms[3],ms[4],ms[5],ms[6],ms[7]);
+            }
+            
+            if((opt1 != '1') & (opt1 != '2'))
+                printf("Wrong selection!\n");
+            break;
+        case '2':
+            printf("Please select the format of your cypertext\n"
+                   "1 Ascii\n"
+                   "2 Hex\n");
+            char opt2=getchar();
+            fflush(stdin);
+            if(opt2 == '1'){
+                printf("Please enter the message you wish to decrypt in ascii format\n");
+                scanf("%s", text);
+                fflush(stdin);
+                uint64_t c = asciitohex(text);
+                c = DES(c,0x133457799BBCDFF1,true);
+                char *ms;
+                ms = hextoascii(c);
+                uint32_t a,b;
+                a = (c & 0xFFFFFFFF);
+                b = (c >> 32) & 0xFFFFFFFF;
+                printf("\n\nYour text in hex format is:\n\n"
+                       "%x%x\n\n",b,a);
+                printf("Your text in ascii format is:\n"
+                       "%c%c%c%c%c%c%c%c\n"
+                       ,ms[0],ms[1],ms[2],ms[3],ms[4],ms[5],ms[6],ms[7]);
+            }
+            if(opt2 == '2'){
+                printf("Please enter the message you wish to decrypt in hex format\n");
+                char code2[17];
+                scanf("%s", code2);
+                fflush(stdin);
+                uint64_t c = hexstringtoint64(code2);
+                c = DES(c,0x133457799BBCDFF1,true);
+                char *ms;
+                ms = hextoascii(c);
+                uint32_t a,b;
+                a = (c & 0xFFFFFFFF);
+                b = (c >> 32) & 0xFFFFFFFF;
+                printf("\n\nYour text in hex format is:\n\n"
+                       "%x%x\n\n",b,a);
+                printf("Your text in ascii format is:\n"
+                       "%c%c%c%c%c%c%c%c\n"
+                       ,ms[0],ms[1],ms[2],ms[3],ms[4],ms[5],ms[6],ms[7]);
+            }
+            break;
+        default:
+            printf("Wrong selection!\n");
+            break;
+    }
+    return true;
+}
+
+uint64_t asciitohex (char *text){
+    uint64_t hexpart[8],hextext;
+    
+    hexpart[0] = text[0];
+    hexpart[0] = hexpart[0] << 56;
+    hexpart[1] = text[1];
+    hexpart[1] = hexpart[1]<< 48;
+    hexpart[2] = text[2];
+    hexpart[2] = hexpart[2]<< 40;
+    hexpart[3] = text[3];
+    hexpart[3] = hexpart[3]<< 32;
+    hexpart[4] = text[4];
+    hexpart[4] = hexpart[4]<< 24;
+    hexpart[5] = text[5];
+    hexpart[5] = hexpart[5]<< 16;
+    hexpart[6] = text[6];
+    hexpart[6] = hexpart[6]<< 8;
+    hexpart[7] = text[7];
+    hexpart[7] = hexpart[7]<< 0;
+    
+    hextext = hexpart[7]|
+    hexpart[6]|
+    hexpart[5]|
+    hexpart[4]|
+    hexpart[3]|
+    hexpart[2]|
+    hexpart[1]|
+    hexpart[0];
+    
+    return hextext;
+    
+    
+}
+
+char* hextoascii (uint64_t num){
+    static char da[8];
+    
+    da[0] = (uint8_t) ((num >> 56) & 0xFF);
+    da[1] = (uint8_t) ((num >> 48) & 0xFF);
+    da[2] = (uint8_t) ((num >> 40) & 0xFF);
+    da[3] = (uint8_t) ((num >> 32) & 0xFF);
+    da[4] = (uint8_t) ((num >> 24) & 0xFF);
+    da[5] = (uint8_t) ((num >> 16) & 0xFF);
+    da[6] = (uint8_t) ((num >>  8) & 0xFF);
+    da[7] = (uint8_t) ((num >>  0) & 0xFF);
+    
+    return da;
+}
+
+uint64_t hexstringtoint64 (char code[16]){
+    uint64_t c = 0;
+    for (int x = 0 ; x < 16 ; x++){
+        switch(code[x])
+        {
+            case 'a':
+                code[x] = 58;
+                break;
+            case 'A':
+                code[x] = 58;
+                break;
+            case 'b':
+                code[x] = 59;
+                break;
+            case ('B'):
+                code[x] = 59;
+                break;
+            case 'c':
+                code[x] = 60;
+                break;
+            case 'C':
+                code[x] = 60;
+                break;
+            case 'd':
+                code[x] = 61;
+                break;
+            case 'D':
+                code[x] = 61;
+                break;
+            case 'e':
+                code[x] = 62;
+                break;
+            case 'E':
+                code[x] = 62;
+                break;
+            case 'f':
+                code[x] = 63;
+                break;
+            case 'F':
+                code[x] = 63;
+                break;
+            default:
+                break;
+        }
+    }
+    c =  ((uint64_t) code[0]-'0') << 60;
+    c |= ((uint64_t) code[1]-'0') << 56;
+    c |= ((uint64_t) code[2]-'0') << 52;
+    c |= ((uint64_t) code[3]-'0') << 48;
+    c |= ((uint64_t) code[4]-'0') << 44;
+    c |= ((uint64_t) code[5]-'0') << 40;
+    c |= ((uint64_t) code[6]-'0') << 36;
+    c |= ((uint64_t) code[7]-'0') << 32;
+    c |= ((uint64_t) code[8]-'0') << 28;
+    c |= ((uint64_t) code[9]-'0') << 24;
+    c |= ((uint64_t) code[10]-'0') <<20;
+    c |= ((uint64_t) code[11]-'0') <<16;
+    c |= ((uint64_t) code[12]-'0') <<12;
+    c |= ((uint64_t) code[13]-'0') << 8;
+    c |= ((uint64_t) code[14]-'0') << 4;
+    c |= ((uint64_t) code[15]-'0') << 0;
+    
+    return c;
+}
